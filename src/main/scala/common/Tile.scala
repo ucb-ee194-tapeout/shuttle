@@ -22,7 +22,6 @@ import shuttle.exu._
 import shuttle.dmem._
 import freechips.rocketchip.trace.{TraceEncoderParams, TraceEncoderController, TraceSinkArbiter}
 
-
 trait TCMParams {
   def base: BigInt
   def size: BigInt
@@ -68,7 +67,7 @@ case class ShuttleCrossingParams(
   slave: HierarchicalElementSlavePortParams = HierarchicalElementSlavePortParams(where=SBUS),
   mmioBaseAddressPrefixWhere: TLBusWrapperLocation = SBUS,
   resetCrossingType: ResetCrossingType = NoResetCrossing(),
-  forceSeparateClockReset: Boolean = false,
+  forceSeparateClockReset: Boolean = false, 
   forceMergedCreditedTLCrossings: Boolean = false
 ) extends HierarchicalElementCrossingParamsLike
 
@@ -196,7 +195,7 @@ class ShuttleTile private(
         beatBytes = shuttleParams.tileBeatBytes,
         atomics = true,
         devOverride = Some(device),
-        devName = Some(s"Core $tileId TCM bank $b")
+        devName = Some(s"Core $tileId TCM bank $b beatBytes ${shuttleParams.tileBeatBytes}")
       ))
       tcm.node := TLFragmenter(shuttleParams.tileBeatBytes, p(CacheBlockBytes)) := TLBuffer() := tcmSlaveXbar.get
     }
@@ -220,7 +219,8 @@ class ShuttleTile private(
 
   val trace_encoder_controller = shuttleParams.traceParams.map { t =>
     val trace_encoder_controller = LazyModule(new TraceEncoderController(t.encoderBaseAddr, shuttleParams.tileBeatBytes))
-    connectTLSlave(trace_encoder_controller.node, shuttleParams.tileBeatBytes)
+    // connectTLSlave(tlMmioXbar.node, trace_encoder_controller.node, xBytes)
+    connectMMIORaw(trace_encoder_controller.node)
     trace_encoder_controller
   }
 
@@ -237,7 +237,6 @@ class ShuttleTile private(
   DisableMonitors { implicit p => tlSlaveXbar.node :*= slaveNode }
 
   tcmSlaveXbar.map { tcmSlaveXbar =>
-
     // Connect to slavebar to the slaveport into the tile
     (tcmSlaveXbar
       := tcmSlaveReplicator(shuttleParams.tcm)
