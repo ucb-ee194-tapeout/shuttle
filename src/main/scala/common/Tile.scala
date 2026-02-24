@@ -217,7 +217,7 @@ class ShuttleTile private(
   }}
 
   val trace_encoder_controller = shuttleParams.traceParams.map { t =>
-    val trace_encoder_controller = LazyModule(new TraceEncoderController(t.encoderBaseAddr, shuttleParams.tileBeatBytes))
+    val trace_encoder_controller = LazyModule(new TraceEncoderController(t.encoderBaseAddr, shuttleParams.tileBeatBytes, tileId))
     connectTLSlave(trace_encoder_controller.node, shuttleParams.tileBeatBytes)
     trace_encoder_controller
   }
