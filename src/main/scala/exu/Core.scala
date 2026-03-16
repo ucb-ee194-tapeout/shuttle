@@ -742,6 +742,11 @@ class ShuttleCore(tile: ShuttleTile, edge: TLEdgeOut)(implicit p: Parameters) ex
     val ctrl = uop.ctrl
     when (mem_uops_reg(i).valid && mem_uops_reg(i).bits.ctrl.jalr && csr.io.status.debug) {
       io.imem.flush_icache := true.B
+      // Flush pipeline in Shuttle style
+      flush_rrd_ex := true.B
+      io.imem.redirect_val := true.B
+      io.imem.redirect_flush := true.B
+      io.imem.redirect_pc := mem_brjmp_npc
     }
     when (mem_brjmp_oh(i) && mem_uops_reg(i).bits.ctrl.jalr) {
       com_uops_reg(i).bits.wdata.valid := true.B
